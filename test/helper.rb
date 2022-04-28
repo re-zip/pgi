@@ -24,15 +24,12 @@ module PGI
       module_function
 
       def postgres_connection
-        require "pgi/db"
+        require "pgi"
 
         PGI::DB.configure do |options|
           options.pool_size = 1
           options.pool_timeout = 0.2
-          options.pg_database = "pgi_test"
-          options.pg_host = "localhost"
-          options.pg_user = "pgi"
-          options.pg_password = "password"
+          options.pg_uri = "postgresql://pgi:password@localhost:5432/pgi_test"
           options.logger = LOG_CATCHER
         end
       end

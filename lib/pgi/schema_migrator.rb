@@ -1,0 +1,110 @@
+module PGI
+  class SchemaMigrator
+    @config     = Struct.new(:pg_conn, :migration_files, :seed_files).new
+    @migrations = Hash.new { |h, k| h[k] = {} }.merge(
+      # Default migration
+      0 => {
+        1 => "CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER," \
+             "created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP);",
+        -1 => "DROP TABLE schema_migrations;"
+      }
+    )
+
+    def initialize(version)
+      raise "FATAL: version must be an integer > 0" unless version.is_a?(Integer) && version.positive?
+      raise "FATAL: Duplication migration version" if self.class.migrations.key?(version)
+      raise "FATAL: Broken migration ID sequence" unless version == self.class.migrations.keys.max + 1
+
+      @version = version
+    end
+
+    def up
+      self.class.migrations[@version][1] = yield
+    end
+
+    def down
+      self.class.migrations[@version][-1] = yield
+    end
+
+    class << self
+      attr_reader :config, :migrations
+
+      def configure
+        yield(config)
+
+        self
+      end
+
+      def migrate!(version = nil)
+        unless version.nil? || (version.is_a?(Integer) && version >= 0)
+          raise "FATAL: version must be an integer >= 0"
+        end
+
+        config.migration_files.sort.each { |file| require file }
+
+        raise "FATAL: Migration version does not exist" unless version.nil? || migrations.key?(version)
+
+        to_version = version || latest_migration.to_i
+        current    = current_version
+        walk       = to_version - current
+        direction  = walk.positive? ? 1 : -1
+        steps      =
+          if direction == 1
+            migrations.keys[(current + 1)..].to_a
+          else
+            migrations.keys[0..current].to_a.reverse
+          end.take(walk.abs)
+
+        if current == to_version
+          puts "No migrations detected..."
+          return
+        end
+
+        config.pg_conn.transaction do
+          steps.each do |v|
+            delete_version(v) if direction == -1
+            config.pg_conn.exec(migrations[v][direction])
+            add_version(v) if direction == 1
+          end
+        end
+      end
+
+      def version(version)
+        yield(new(version))
+      end
+
+      def current_version
+        current = config.pg_conn.exec(<<~SQL).first
+          SELECT * FROM schema_migrations
+          ORDER BY version DESC LIMIT 1
+        SQL
+
+        (current && current["version"].to_i) || 0
+      rescue PG::UndefinedTable => e
+        raise unless e.message =~ /relation "schema_migrations" does not exist/
+
+        -1
+      end
+
+      private
+
+      def latest_migration
+        migrations.keys.max || -1
+      end
+
+      def add_version(version)
+        config.pg_conn.exec_params(<<~SQL, [version])
+          INSERT INTO schema_migrations
+          (version) VALUES ($1)
+        SQL
+      end
+
+      def delete_version(version)
+        config.pg_conn.exec_params(<<~SQL, [version])
+          DELETE FROM schema_migrations
+          WHERE version = $1
+        SQL
+      end
+    end
+  end
+end

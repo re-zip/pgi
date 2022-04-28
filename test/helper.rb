@@ -1,0 +1,61 @@
+ENV["RACK_ENV"] = "test"
+
+# Simplecov must be loaded and configured before anything else
+require "simplecov"
+require "simplecov-console"
+SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new(
+  [
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::Console
+  ]
+)
+SimpleCov.start do
+  add_filter "/vendor/"
+  minimum_coverage 100
+end
+
+require "minitest/autorun"
+require "minitest/reporters"
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+
+module PGI
+  module Test
+    module Methods
+      module_function
+
+      def postgres_connection
+        require "pgi/db"
+
+        PGI::DB.configure do |options|
+          options.pool_size = 1
+          options.pool_timeout = 0.2
+          options.pg_database = "pgi_test"
+          options.pg_host = "localhost"
+          options.pg_user = "pgi"
+          options.pg_password = "password"
+          options.logger = LOG_CATCHER
+        end
+      end
+
+      def postgres_migrator(pg_conn)
+        require "pgi/schema_migrator"
+
+        PGI::SchemaMigrator.configure do |config|
+          config.migration_files = [File.realpath("test/fixtures/migrations.rb")]
+          config.pg_conn = pg_conn
+        end
+      end
+
+      # Mark a test as a todo by skipping it
+      def todo
+        skip "Not implemented yet"
+      end
+    end
+  end
+end
+
+require "test/support/log_catcher"
+SETUP = begin
+  LOG_CATCHER = PGI::Test::Support::LogCatcher.logger
+  PG_CONN = PGI::Test::Methods.postgres_connection
+end

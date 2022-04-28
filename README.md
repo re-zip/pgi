@@ -2,7 +2,7 @@
 
 PGI is a simple and convenient interface for PostgreSQL with a few enhancements.
 
-## PGI::Postgres
+## PGI::DB
 
 The `PGI::DB` handles connections to a PostgreSQL databases. It features...
 

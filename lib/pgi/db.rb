@@ -29,13 +29,13 @@ module PGI
 
     def self.configure
       @options = Struct.new(
-        :pool_size, :pool_timeout, :pg_uri, :logger
+        :pool_size, :pool_timeout, :pg_conn_uri, :logger
       ).new
 
       yield @options
 
       pool = ConnectionPool.new(size: @options.pool_size, timeout: @options.pool_timeout) do
-        PG::Connection.new(@options.pg_uri).tap do |conn|
+        PG::Connection.new(@options.pg_conn_uri).tap do |conn|
           conn.type_map_for_results = PG::BasicTypeMapForResults.new(conn)
           conn.type_map_for_queries = PG::BasicTypeMapForQueries.new(conn)
         end

@@ -29,7 +29,7 @@ module PGI
         PGI::DB.configure do |options|
           options.pool_size = 1
           options.pool_timeout = 0.2
-          options.pg_uri = "postgresql://pgi:password@localhost:5432/pgi_test"
+          options.pg_conn_uri = "postgresql://pgi:password@localhost:5432/pgi_test"
           options.logger = LOG_CATCHER
         end
       end

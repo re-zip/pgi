@@ -17,7 +17,7 @@ describe "tasks.rb" do
       config.pg_conn = PGI::DB.configure do |options|
         options.pool_size = 1
         options.pool_timeout = 5
-        options.pg_uri = "postgresql://pgi:password@localhost:5432/pgi_test"
+        options.pg_conn_uri = "postgresql://pgi:password@localhost:5432/pgi_test"
         options.logger = LOG_CATCHER
       end
     end

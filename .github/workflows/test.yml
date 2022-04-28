@@ -21,6 +21,7 @@ jobs:
         ruby:
           - 2.7
           - 3.0
+          - 3.1
     env:
       RACK_ENV: test
     steps:
@@ -29,9 +30,9 @@ jobs:
     - name: Setup PostgreSQL server
       uses: harmon758/postgresql-action@v1
       with:
-        postgresql version: '13'
-        postgresql db: storage_test
-        postgresql user: storage
+        postgresql version: '14'
+        postgresql db: pgi_test
+        postgresql user: pgi
         postgresql password: password
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1

@@ -3,8 +3,8 @@ PGI::SchemaMigrator.version(1) do |migrator|
     <<~SQL
       CREATE TABLE dataset (
         id SERIAL,
-        name VARCHAR(256) NOT NULL,
-        age INTEGER NOT NULL
+        name VARCHAR(256),
+        age INTEGER
       );
       INSERT INTO dataset (name, age) VALUES ('joe', 25)
     SQL

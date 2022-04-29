@@ -38,8 +38,8 @@ namespace :db do
 
   desc "Perform migration reset (full rollback and migration)"
   task reset: [:migration_env] do
-    unless %w[development test staging ci].include?(ENV["RACK_ENV"])
-      warn "Reset not allowed for environment #{ENV["RACK_ENV"].inspect}"
+    unless %w[development test staging ci].include?(ENV.fetch("RACK_ENV", nil))
+      warn "Reset not allowed for environment #{ENV.fetch("RACK_ENV", nil).inspect}"
       exit 1
     end
 

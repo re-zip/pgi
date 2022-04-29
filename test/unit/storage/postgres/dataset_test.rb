@@ -56,9 +56,14 @@ describe PGI::Dataset do
   end
 
   describe "#insert" do
-    it "inserts and returns new row" do
+    it "inserts data and returns new row" do
       _(repo.insert(name: "jill", age: "25")).must_equal("id" => 2, "name" => "jill", "age" => 25)
       _(repo.find(2)).must_equal("id" => 2, "name" => "jill", "age" => 25)
+    end
+
+    it "inserts no data and returns new row with default values" do
+      _(repo.insert).must_equal("id" => 2, "name" => nil, "age" => nil)
+      _(repo.find(2)).must_equal("id" => 2, "name" => nil, "age" => nil)
     end
   end
 
@@ -100,6 +105,18 @@ describe PGI::Dataset do
   describe "#first" do
     it "returns row if id exist" do
       repo.first.tap do |hsh|
+        _(hsh).must_equal("id" => 1, "name" => "joe", "age" => 25)
+      end
+    end
+
+    it "returns nil if no row with id exist" do
+      _(repo.find(2)).must_be_nil
+    end
+  end
+
+  describe "#last" do
+    it "returns row if id exist" do
+      repo.last.tap do |hsh|
         _(hsh).must_equal("id" => 1, "name" => "joe", "age" => 25)
       end
     end

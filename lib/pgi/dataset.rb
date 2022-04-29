@@ -32,9 +32,13 @@ module PGI
 
       columns = Utils.sanitize_columns(attributes.to_h.keys)
       params  = attributes.to_h.values
-      command =
-        "INSERT INTO #{@table} (#{columns.join(", ")}) " \
-        "VALUES (#{Utils.placeholders(params).join(", ")}) "
+      command = "INSERT INTO #{@table}"
+      command <<
+        if columns.empty?
+          " DEFAULT VALUES"
+        else
+          " (#{columns.join(", ")}) VALUES (#{Utils.placeholders(params).join(", ")}) "
+        end
 
       _to_model Query.new(@database, @table, command, params: params).limit(nil).cursor(nil).to_a.first
     end

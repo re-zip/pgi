@@ -36,9 +36,7 @@ module PGI
       end
 
       def migrate!(version = nil)
-        unless version.nil? || (version.is_a?(Integer) && version >= 0)
-          raise "FATAL: version must be an integer >= 0"
-        end
+        raise "FATAL: version must be an integer >= 0" unless version.nil? || (version.is_a?(Integer) && version >= 0)
 
         config.migration_files.sort.each { |file| require file }
 

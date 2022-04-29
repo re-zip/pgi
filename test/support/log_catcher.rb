@@ -1,6 +1,7 @@
 require "logger"
 require "stringio"
 
+# :nocov:
 module PGI
   module Test
     module Support
@@ -50,3 +51,4 @@ module PGI
     end
   end
 end
+# :nocov:

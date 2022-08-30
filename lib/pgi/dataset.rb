@@ -71,7 +71,7 @@ module PGI
     # @return [Model,Hash]
     def delete(id)
       command = "DELETE FROM #{@table}"
-      _to_model Query.new(@database, @table, command).where(id: id).limit(nil).cursor(nil).to_a.first
+      _to_model Query.new(@database, @table, command, **@options).where(id: id).limit(nil).cursor(nil).to_a.first
     end
 
     # Get a row by its id
@@ -79,14 +79,14 @@ module PGI
     # @param id [*] ID of row
     # @return [Model,Hash]
     def find(id)
-      _to_model Query.new(@database, @table, nil).where(id: id).cursor(nil).first
+      _to_model Query.new(@database, @table, nil, **@options).where(id: id).cursor(nil).first
     end
 
     # Get all rows
     #
     # @return [Array] list of Models, Hashes
     def all
-      _to_models Query.new(@database, @table, nil).limit(nil).to_a
+      _to_models Query.new(@database, @table, nil, **@options).limit(nil).to_a
     end
 
     # Get first row by column (default: :id)
@@ -107,7 +107,7 @@ module PGI
     #
     # @return [Integer] number of rows in the table
     def count
-      Query.new(@database, @table, nil).count
+      Query.new(@database, @table, nil, **@options).count
     end
 
     # Get a page (keyset pagination)
@@ -117,7 +117,7 @@ module PGI
     # @param where [Array] an optional WHERE clause
     # @return [Array] list of Models, Hashes
     def page(offset = 0, size = 10, *where)
-      _to_models Query.new(@database, @table, nil).where(*where).cursor(:id, offset).limit(size).to_a
+      _to_models Query.new(@database, @table, nil, **@options).where(*where).cursor(:id, offset).limit(size).to_a
     end
 
     private

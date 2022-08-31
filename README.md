@@ -43,7 +43,7 @@ The `PGI::Dataset` is a super light weight ActiveRecord::Relation replacement. I
 
 ```ruby
 class Repository
-  extend PGI::Dataset[DB, :table, cursor: { id: 0 }]
+  extend PGI::Dataset[DB, :table, cursor: { id: 0 }, scope: "age >= 21"]
 end
 
 # Select an entire row from a table

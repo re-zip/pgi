@@ -65,6 +65,11 @@ module PGI
         self
       end
 
+      # Adds a LIMIT clause to the query
+      #
+      # @param direction [Integer] the direction the sort should take - can be either `:desc` or `:asc`
+      # @raise [RuntimeError] if the direction param is invalid
+      # @return [Query] return the Query instance (for method chaining)
       def limit(number)
         raise "LIMIT must be an integer or nil" unless number.nil? || number.is_a?(Integer)
 

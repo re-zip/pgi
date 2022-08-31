@@ -9,12 +9,13 @@ module PGI
       # @param database [PGI::DB] a configured instance of DB
       # @param table [Symbol] the name of the database table to operate on
       # @param command [String] the command part of the query (default: `SELECT * FROM <table>`)
-      # @param options [Hash] hash of options: where, params, limit, order, returning, cursor
+      # @param options [Hash] hash of options: scope, where, params, limit, order, returning, cursor
       # @return [Query] new instance of Query
       def initialize(database, table, command, **options)
         @database  = database
         @table     = table
         @command   = command || "SELECT * FROM #{@table}"
+        @scope     = options.fetch(:scope, nil)
         @where     = options.fetch(:where, nil)
         @params    = options.fetch(:params, [])
         @order     = options.fetch(:order, {})
@@ -111,8 +112,12 @@ module PGI
             @where
           end
 
+        # Simple Scope implementation
+        scope = @scope.dup
+        scope << " AND " if scope && clause
+
         command = @command.dup
-        command << " WHERE #{clause}" if clause
+        command << " WHERE #{scope}#{clause}" if clause || scope
         command << " ORDER BY #{Array(@order).map { |x| x.join(" ") }.join(", ")}" unless @order.empty?
         command << " LIMIT #{@limit}" if @limit
         command << " RETURNING *" if @command =~ /^UPDATE|INSERT|DELETE/

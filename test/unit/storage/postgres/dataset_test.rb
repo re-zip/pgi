@@ -8,7 +8,7 @@ describe PGI::Dataset do
   let(:migrator) { postgres_migrator(pg_conn) }
   let(:repo) do
     Class.new do
-      extend PGI::Dataset[PG_CONN, :dataset, cursor: nil]
+      extend PGI::Dataset[PG_CONN, :dataset, cursor: nil, scope: "id > 0"]
 
       class << self
         attr_accessor :pg_conn
@@ -44,12 +44,12 @@ describe PGI::Dataset do
     it "handles placesholders in WHERE clause from a String" do
       params = ["joe", 25]
       repo.where("name = ? AND age = ?", params).tap do |obj|
-        _(obj.sql).must_match(/WHERE name = \$1 AND age = \$2/)
+        _(obj.sql).must_match(/WHERE id > 0 AND name = \$1 AND age = \$2/)
         _(obj.params).must_equal params
       end
 
       repo.where("name = $1 AND age = $2", params).tap do |obj|
-        _(obj.sql).must_match(/WHERE name = \$1 AND age = \$2/)
+        _(obj.sql).must_match(/WHERE id > 0 AND name = \$1 AND age = \$2/)
         _(obj.params).must_equal params
       end
     end

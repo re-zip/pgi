@@ -112,7 +112,7 @@ module PGI
             @where
           end
 
-        # TODO: scoping
+        # Simple Scope implementation
         scope = @scope.dup
         scope << " AND " if scope && clause
 

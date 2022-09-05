@@ -114,10 +114,14 @@ module PGI
     #
     # @param offset [*] the page offset
     # @param size [Integer] the page size
+    # @param sort_by [Symbol] the column to sort by
+    # @param sort_dir [Symbol] the direction to sort by
     # @param where [Array] an optional WHERE clause
     # @return [Array] list of Models, Hashes
-    def page(offset = 0, size = 10, *where)
-      _to_models Query.new(@database, @table, nil, **@options).where(*where).cursor(:id, offset).limit(size).to_a
+    def page(offset = 0, size = 10, sort_by = :id, sort_dir = :asc, *where)
+      _to_models Query
+        .new(@database, @table, nil, **@options)
+        .where(*where).cursor(sort_by, offset, sort_dir).limit(size).to_a
     end
 
     private

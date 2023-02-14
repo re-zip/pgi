@@ -75,14 +75,14 @@ module PGI
     def exec_stmt(stmt_name, sql, params = [])
       with do |conn|
         if [PG::PQTRANS_ACTIVE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR].include?(conn.transaction_status)
-          @logger.info "Unable to use statements within a transaction - falling back to #exec_params"
+          @logger.debug "Unable to use statements within a transaction - falling back to #exec_params"
           return conn.exec_params(sql, params)
         end
 
         begin
           conn.exec_prepared(stmt_name, params)
         rescue PG::InvalidSqlStatementName
-          @logger.info "Creating missing prepared statement: \"#{stmt_name}\""
+          @logger.debug "Creating missing prepared statement: \"#{stmt_name}\""
           begin
             conn.prepare(stmt_name, sql) && retry
           rescue PG::SyntaxError => e

@@ -39,4 +39,8 @@ jobs:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true
     - name: Run tests
-      run: bundle exec rake test
+      run: bundle exec rake test:specs
+    - name: Run style check
+      run: |
+        curl -s http://coherify.net/development/rubocop.yml --output .rubocop.yml
+        bundle exec rake test:rubocop

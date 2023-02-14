@@ -18,8 +18,8 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.files         = Dir["lib/**/*", ".gitignore", "CHANGELOG.md", "Gemfile", "Rakefile", "README.md", "pgi.gemspec"]
 
-  gem.add_dependency "connection_pool", "~> 2.2.3"
-  gem.add_dependency "pg", "~> 1.2.3"
+  gem.add_dependency "connection_pool", "~> 2.3.0"
+  gem.add_dependency "pg", "~> 1.4.5"
 
   gem.add_development_dependency "bundler-audit"
   gem.add_development_dependency "minitest"

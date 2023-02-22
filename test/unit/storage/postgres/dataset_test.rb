@@ -67,6 +67,13 @@ describe PGI::Dataset do
     end
   end
 
+  describe "#insert!" do
+    it "disables special column filtering" do
+      _(repo.insert(id: 8).fetch("id")).must_equal 2
+      _(repo.insert!(id: 8).fetch("id")).must_equal 8
+    end
+  end
+
   describe "#update" do
     it "updates existing record" do
       _(repo.update(1, age: 26)).must_equal("id" => 1, "name" => "joe", "age" => 26)

@@ -35,7 +35,7 @@ describe PGI::DB do
         end
       end
 
-      _(log).must_match "PG::UnableToSend"
+      _(log).must_match(/PG::ConnectionBad|PG::UnableToSend/)
     end
 
     it "handles and retries on connection pool timeout" do

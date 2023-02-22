@@ -30,6 +30,10 @@ module PGI
       attributes.delete(:created_at)
       attributes.delete(:updated_at)
 
+      insert!(**attributes)
+    end
+
+    def insert!(**attributes)
       columns = Utils.sanitize_columns(attributes.to_h.keys)
       params  = attributes.to_h.values
       command = "INSERT INTO #{@table}"
@@ -49,10 +53,14 @@ module PGI
     # @param args [Hash] data for update
     # @return [Model,Hash]
     def update(id, **args)
-      args.delete(:id)
       args.delete(:created_at)
       args.delete(:updated_at)
-      # args[:updated_at] && args[:updated_at] = Time.now
+
+      update!(id, **args)
+    end
+
+    def update!(id, **args)
+      args.delete(:id)
 
       columns = args.keys.map.with_index { |k, i| "#{Utils.sanitize_columns(k).first} = $#{i + 1}" }
       params  = args.values << id

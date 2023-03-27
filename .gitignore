@@ -1,4 +1,6 @@
 .bundle
+.rebl_history
 .DS_Store
 coverage/
 pkg/
+vendor/

@@ -107,11 +107,12 @@ module PGI
           if @cursor
             # Append order by cursor
             order(@cursor[0], @cursor[2])
+            cursor_dir = @cursor[2] == :asc ? ">" : "<"
 
             if @where
-              "#{Utils.sanitize_columns(@cursor[0], @table).first} > $#{@params.size + 1} AND (#{@where})"
+              "#{Utils.sanitize_columns(@cursor[0], @table).first} #{cursor_dir} $#{@params.size + 1} AND (#{@where})"
             else
-              "#{Utils.sanitize_columns(@cursor[0], @table).first} > $#{@params.size + 1}"
+              "#{Utils.sanitize_columns(@cursor[0], @table).first} #{cursor_dir} $#{@params.size + 1}"
             end
           else
             @where

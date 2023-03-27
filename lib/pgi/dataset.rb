@@ -126,10 +126,13 @@ module PGI
     # @param sort_dir [Symbol] the direction to sort by
     # @param where [Array] an optional WHERE clause
     # @return [Array] list of Models, Hashes
-    def page(cursor = 0, size = 10, sort_by = :id, sort_dir = :asc, *where)
-      _to_models Query
-        .new(@database, @table, nil, **@options)
-        .where(*where).cursor(sort_by, cursor, sort_dir).limit(size).to_a
+    def page(cursor = nil, size = 10, sort_by = :id, sort_dir = :asc, *where)
+      query = Query.new(@database, @table, nil, **@options)
+      query = query.where(*where)
+      query = cursor ? query.cursor(sort_by, cursor, sort_dir) : query.cursor(nil).order(sort_by, sort_dir)
+      query = query.limit(size)
+
+      _to_models query.to_a
     end
 
     private

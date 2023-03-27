@@ -142,6 +142,8 @@ describe PGI::Dataset do
   describe "#page" do
     it "returns a paginated result" do
       3.times { |x| repo.insert(name: "jimbo", age: 20 + x) }
+      _(repo.page(nil, 1, :id, :asc)).must_equal [{ "id" => 1, "name" => "joe", "age" => 25 }]
+      _(repo.page(nil, 1, :id, :desc)).must_equal [{ "id" => 4, "name" => "jimbo", "age" => 22 }]
       _(repo.page(1, 1)).must_equal [{ "id" => 2, "name" => "jimbo", "age" => 20 }]
       _(repo.page(2, 1)).must_equal [{ "id" => 3, "name" => "jimbo", "age" => 21 }]
       _(repo.page(4, 1, :id, :desc)).must_equal [{ "id" => 3, "name" => "jimbo", "age" => 21 }]

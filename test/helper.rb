@@ -57,4 +57,6 @@ require "test/support/log_catcher"
 SETUP = begin
   LOG_CATCHER = PGI::Test::Support::LogCatcher.logger
   PG_CONN = PGI::Test::Methods.postgres_connection
+  PGI::Test::Methods.postgres_migrator(PG_CONN).migrate!(0)
+  PGI::Test::Methods.postgres_migrator(PG_CONN).migrate!
 end

@@ -9,13 +9,6 @@ module PGI
       end
     end
 
-    PG::BasicTypeRegistry.register_type 0, "json", PG::TextEncoder::JSON, JSONDecoder
-    PG::BasicTypeRegistry.alias_type(0, "jsonb", "json")
-    PG::BasicTypeRegistry.alias_type(0, "uuid", "text")
-    PG::BasicTypeRegistry.alias_type(0, "name", "text")
-    PG::BasicTypeRegistry.alias_type(0, "regproc", "text")
-    PG::BasicTypeRegistry.alias_type(0, "pg_node_tree", "text")
-
     attr_reader :pool
 
     # Create instance
@@ -35,8 +28,12 @@ module PGI
       yield @options
 
       pool = ConnectionPool.new(size: @options.pool_size, timeout: @options.pool_timeout) do
+        regi = PG::BasicTypeRegistry.new.register_default_types
+        regi.register_type 0, "json", PG::TextEncoder::JSON, JSONDecoder
+        regi.alias_type(0, "jsonb", "json")
+
         PG::Connection.new(@options.pg_conn_uri).tap do |conn|
-          conn.type_map_for_results = PG::BasicTypeMapForResults.new(conn)
+          conn.type_map_for_results = PG::BasicTypeMapForResults.new(conn, registry: regi)
           conn.type_map_for_queries = PG::BasicTypeMapForQueries.new(conn)
         end
       end

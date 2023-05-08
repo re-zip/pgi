@@ -80,7 +80,7 @@ describe "tasks.rb" do
       assert_output(
         "Destroying all tables...\n" \
       ) do
-        s = execute_rake("db:destroy")
+        execute_rake("db:destroy")
       end
     end
 

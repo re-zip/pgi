@@ -73,4 +73,25 @@ describe "tasks.rb" do
       _(err).must_match(/Reset not allowed for environment "production"/)
     end
   end
+
+  describe "db:destroy" do
+    it "execute a reset of the database" do
+      execute_rake("db:migrate") # Make sure there is something to reset
+      assert_output(
+        "Destroying all tables...\n" \
+      ) do
+        s = execute_rake("db:destroy")
+      end
+    end
+
+    it "fails a reset of the database in production" do
+      _, err = capture_io do
+        e = assert_raises SystemExit do
+          execute_rake("db:destroy", "production")
+        end
+        _(e.status).must_equal 1
+      end
+      _(err).must_match(/Destroy not allowed for environment "production"/)
+    end
+  end
 end

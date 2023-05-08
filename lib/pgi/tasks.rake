@@ -49,6 +49,17 @@ namespace :db do
     Rake::Task["db:version"].execute
   end
 
+  desc "Destroy all tables with and go back to empty DB"
+  task destroy: [:migration_env] do
+    unless %w[development test staging ci].include?(ENV.fetch("RACK_ENV", nil))
+      warn "Destroy not allowed for environment #{ENV.fetch("RACK_ENV", nil).inspect}"
+      exit 1
+    end
+
+    puts "Destroying all tables..."
+    PGI::SchemaMigrator.destroy!
+  end
+
   desc "Seed database"
   task seed: [:migration_env] do
     puts "Seeding database with test data..."

@@ -34,7 +34,7 @@ module PGI
 
         PG::Connection.new(@options.pg_conn_uri).tap do |conn|
           conn.type_map_for_results = PG::BasicTypeMapForResults.new(conn, registry: regi)
-          conn.type_map_for_queries = PG::BasicTypeMapForQueries.new(conn)
+          conn.type_map_for_queries = PG::BasicTypeMapForQueries.new(conn, registry: regi)
         end
       end
 

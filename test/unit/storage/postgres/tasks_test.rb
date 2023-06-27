@@ -52,31 +52,18 @@ describe "tasks.rb" do
     end
   end
 
-  describe "db:reset" do
-    it "execute a reset of the database" do
-      execute_rake("db:migrate") # Make sure there is something to reset
-      assert_output(
-        "Seeding database with test data...\n" \
-        "Schema Version: 1\n"
-      ) do
-        execute_rake("db:reset")
+  describe "db:seed" do
+    it "seed database with data" do
+      execute_rake("db:migrate") # Make sure there is something to seed
+      assert_output("Seeding database with test data...\n") do
+        execute_rake("db:seed")
       end
-    end
-
-    it "fails a reset of the database in production" do
-      _, err = capture_io do
-        e = assert_raises SystemExit do
-          execute_rake("db:reset", "production")
-        end
-        _(e.status).must_equal 1
-      end
-      _(err).must_match(/Reset not allowed for environment "production"/)
     end
   end
 
   describe "db:destroy" do
-    it "execute a reset of the database" do
-      execute_rake("db:migrate") # Make sure there is something to reset
+    it "destroy all tables in the database" do
+      execute_rake("db:migrate") # Make sure there is something to destroy
       assert_output(
         "Destroying all tables...\n" \
       ) do
@@ -84,7 +71,7 @@ describe "tasks.rb" do
       end
     end
 
-    it "fails a reset of the database in production" do
+    it "fails to destroy all tables in the database in production" do
       _, err = capture_io do
         e = assert_raises SystemExit do
           execute_rake("db:destroy", "production")

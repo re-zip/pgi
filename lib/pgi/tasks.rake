@@ -36,19 +36,6 @@ namespace :db do
     Rake::Task["db:version"].execute
   end
 
-  desc "Perform migration reset (full rollback and migration)"
-  task reset: [:migration_env] do
-    unless %w[development test staging ci].include?(ENV.fetch("RACK_ENV", nil))
-      warn "Reset not allowed for environment #{ENV.fetch("RACK_ENV", nil).inspect}"
-      exit 1
-    end
-
-    PGI::SchemaMigrator.migrate! 0
-    PGI::SchemaMigrator.migrate!
-    Rake::Task["db:seed"].execute
-    Rake::Task["db:version"].execute
-  end
-
   desc "Destroy all tables with and go back to empty DB"
   task destroy: [:migration_env] do
     unless %w[development test staging ci].include?(ENV.fetch("RACK_ENV", nil))

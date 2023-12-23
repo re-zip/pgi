@@ -22,8 +22,13 @@ namespace :test do
   end
 
   desc "Run specs"
-  task :specs do |t|
-    Rake::TestTask.new(t.name) do |tt|
+  task :specs do
+    args = ARGV.dup
+    t = args.shift
+    ENV["TEST"] = args.shift
+    ENV["TESTOPTS"] = "--name='/#{args.join(" ")}/'"
+
+    Rake::TestTask.new(t) do |tt|
       tt.libs << "."
       tt.test_files = Dir.glob("test/{unit,functional}/**/*.rb")
       tt.warning = false

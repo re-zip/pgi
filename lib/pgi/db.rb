@@ -49,12 +49,20 @@ module PGI
     def with
       raise "Missing block" unless block_given?
 
-      @pool.with do |conn|
-        conn.connect_poll == PG::PGRES_POLLING_FAILED && conn.reset
+      @pool.with do |conn| # rubocop:disable Style/ExplicitBlockArgument
         yield conn
-      rescue PG::ConnectionBad, PG::UnableToSend => e
-        @logger.error(e)
-        nil
+      end
+    rescue PG::ConnectionBad, PG::UnableToSend => e
+      if @_retries && @_retries >= 10
+        @_retries = nil
+        @logger.thrown("DB connection was lost - unable to reconnect", e)
+        raise
+      else
+        @_retries = @_retries.to_i + 1
+        @logger.thrown("DB connection was lost - reconnecting(#{@_retries}/10) and retrying", e)
+        @pool.reload(&:close)
+        sleep 2
+        retry
       end
     rescue ConnectionPool::TimeoutError => e
       @logger.thrown("Timeout in checking out DB connection from pool - retrying", e)
@@ -93,9 +101,9 @@ module PGI
     # Pass the remainder of methods on to a PG::Connection
     #
     # @See https://deveiate.org/code/pg/PG/Connection.html
-    def method_missing(name, *args, &block)
+    def method_missing(name, ...)
       with do |conn|
-        conn.__send__(name, *args, &block)
+        conn.__send__(name, ...)
       end
     end
   end

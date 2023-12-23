@@ -49,7 +49,7 @@ module PGI
     def with
       raise "Missing block" unless block_given?
 
-      @pool.with do |conn|
+      @pool.with do |conn| # rubocop:disable Style/ExplicitBlockArgument
         yield conn
       end
     rescue PG::ConnectionBad, PG::UnableToSend => e
@@ -101,9 +101,9 @@ module PGI
     # Pass the remainder of methods on to a PG::Connection
     #
     # @See https://deveiate.org/code/pg/PG/Connection.html
-    def method_missing(name, *args, &block)
+    def method_missing(name, ...)
       with do |conn|
-        conn.__send__(name, *args, &block)
+        conn.__send__(name, ...)
       end
     end
   end

@@ -23,19 +23,46 @@ describe PGI::DB do
 
     it "auto-heals bad connections" do
       log = LOG_CATCHER.run do
+        c = postgres_connection # don't bite the hand that feeds you
         subject.with do |conn|
-          conn.exec(<<~SQL)
+          c.exec(<<~SQL)
             SELECT pg_terminate_backend(#{conn.backend_pid})
             FROM pg_stat_activity
             WHERE pid='#{conn.backend_pid}'
           SQL
         end
-        subject.with do |conn|
-          _(conn.exec("SELECT 1+1 AS sum").to_a.first["sum"]).must_equal 2
+
+        res = subject.with do |conn|
+          conn.exec("SELECT 1+1 AS sum").to_a
         end
+
+        _(res.first["sum"]).must_equal 2
       end
 
       _(log).must_match(/PG::ConnectionBad|PG::UnableToSend/)
+    end
+
+    it "stops retrying bad connections" do
+      log = LOG_CATCHER.run do
+        c = postgres_connection # don't bite the hand that feeds you
+        subject.with do |conn|
+          c.exec(<<~SQL)
+            SELECT pg_terminate_backend(#{conn.backend_pid})
+            FROM pg_stat_activity
+            WHERE pid='#{conn.backend_pid}'
+          SQL
+        end
+
+        subject.instance_variable_set(:@_retries, 10)
+
+        assert_raises PG::ConnectionBad do
+          subject.with do |conn|
+            conn.exec("SELECT 1+1 AS sum").to_a
+          end
+        end
+      end
+
+      _(log).must_match(/DB connection was lost - unable to reconnect/)
     end
 
     it "handles and retries on connection pool timeout" do

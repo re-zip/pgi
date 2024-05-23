@@ -93,7 +93,7 @@ module PGI
               EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
             END LOOP;
             FOR r IN (SELECT DISTINCT typname FROM pg_type INNER JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid) LOOP
-              EXECUTE 'DROP TYPE IF EXISTS ' || qoute_ident(r.typname) || ' CASCADE';
+              EXECUTE 'DROP TYPE IF EXISTS ' || quote_ident(r.typname) || ' CASCADE';
             END LOOP;
           END $$;
         SQL

@@ -62,11 +62,10 @@ module PGI
     def update!(id, **args)
       args[:id] = id
       params = Parameters.new(args)
-      set_columns = params.attributes.filter { |x| x.key != :id }.map(&:column)
+      set_params = params.attributes.filter { |x| x.key != :id }
       id_param = params.by_key[:id]
-
-      command = "UPDATE #{@table} SET #{set_columns.join(", ")} " \
-                "WHERE #{id_param.column} = $#{id_param.index} RETURNING *"
+      command = "UPDATE #{@table} SET #{set_params.map { |x| "#{x.column} = #{x.index}" }.join(", ")} " \
+                "WHERE #{id_param.column} = #{id_param.index} RETURNING *"
 
       # TODO: Query throws `PG::IndeterminateDatatype: ERROR:  could not determine data type of parameter $2`
       # _to_model Query.new(@database, @table, command, params: params).where(id: id).limit(nil).cursor(nil)

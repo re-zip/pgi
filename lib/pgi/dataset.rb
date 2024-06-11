@@ -65,7 +65,6 @@ module PGI
       set_columns = params.attributes.filter { |x| x.key != :id }.map(&:column)
       id_param = params.by_key[:id]
 
-      params  = args.values << id
       command = "UPDATE #{@table} SET #{set_columns.join(", ")} " \
                 "WHERE #{id_param.column} = $#{id_param.index} RETURNING *"
 

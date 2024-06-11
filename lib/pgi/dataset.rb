@@ -35,7 +35,7 @@ module PGI
     end
 
     def insert!(**attributes)
-      params = Parameters.new(attributes, table: @table)
+      params = Parameters.new(attributes)
       command = "INSERT INTO #{@table}"
       command <<
         if params.columns.empty?

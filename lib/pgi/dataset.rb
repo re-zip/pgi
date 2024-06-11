@@ -61,7 +61,7 @@ module PGI
 
     def update!(id, **args)
       args[:id] = id
-      params = Parameters.new(args, table: @table)
+      params = Parameters.new(args)
       set_columns = params.attributes.filter { |x| x.key != :id }.map(&:column)
       id_param = params.by_key[:id]
 

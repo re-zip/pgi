@@ -1,5 +1,6 @@
 require "pgi/dataset/query"
 require "pgi/dataset/utils"
+require "pgi/dataset/parameters"
 
 module PGI
   module Dataset
@@ -34,17 +35,16 @@ module PGI
     end
 
     def insert!(**attributes)
-      columns = Utils.sanitize_columns(attributes.to_h.keys)
-      params  = attributes.to_h.values
+      params = Parameters.new(attributes, table: @table)
       command = "INSERT INTO #{@table}"
       command <<
-        if columns.empty?
+        if params.columns.empty?
           " DEFAULT VALUES"
         else
-          " (#{columns.join(", ")}) VALUES (#{Utils.placeholders(params).join(", ")}) "
+          " (#{params.columns.join(", ")}) VALUES (#{params.indexs.join(", ")}) "
         end
 
-      _to_model Query.new(@database, @table, command, params: params).limit(nil).cursor(nil).to_a.first
+      _to_model Query.new(@database, @table, command, params: params.values).limit(nil).cursor(nil).to_a.first
     end
 
     # Update row
@@ -60,17 +60,19 @@ module PGI
     end
 
     def update!(id, **args)
-      args.delete(:id)
+      args[:id] = id
+      params = Parameters.new(args, table: @table)
+      set_columns = params.attributes.filter { |x| x.key != :id }.map(&:column)
+      id_param = params.by_key[:id]
 
-      columns = args.keys.map.with_index { |k, i| "#{Utils.sanitize_columns(k).first} = $#{i + 1}" }
       params  = args.values << id
-      command = "UPDATE #{@table} SET #{columns.join(", ")} " \
-                "WHERE #{Utils.sanitize_columns(:id, @table).first} = $#{params.size} RETURNING *"
+      command = "UPDATE #{@table} SET #{set_columns.join(", ")} " \
+                "WHERE #{id_param.column} = $#{id_param.index} RETURNING *"
 
       # TODO: Query throws `PG::IndeterminateDatatype: ERROR:  could not determine data type of parameter $2`
       # _to_model Query.new(@database, @table, command, params: params).where(id: id).limit(nil).cursor(nil)
 
-      _to_model @database.exec_stmt(Utils.stmt_name(@table, command), command, params)&.first
+      _to_model @database.exec_stmt(Utils.stmt_name(@table, command), command, params.values)&.first
     end
 
     # Delete row

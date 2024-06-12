@@ -26,6 +26,11 @@ module PGI
           @all_of_field[field] ||= @attributes.map { |x| x[field] }
         end
       end
+
+      alias_method :indices, :indexs
+      def length
+        attributes.length
+      end
     end
   end
 end

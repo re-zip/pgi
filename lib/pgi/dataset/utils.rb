@@ -4,12 +4,20 @@ module PGI
   module Dataset
     module Utils
       class << self
-        # Get numbered placeholders from params
+        # Strips the fields to not insert off a hash
         #
-        # @param params [Array] Params for SQL stateement
-        # @return [Array] List of numbered placeholders (["$1", "$2", ...])
-        def placeholders(params)
-          params.map.with_index { |_, i| "$#{i + 1}" }
+        # @param attr [Hash] input hash
+        # @return [Hash] stripped hash
+        def strip_uninsertable(attr)
+          attr.except(:id).except(:created_at).except(:updated_at)
+        end
+
+        # Strips the fields to not update off a hash
+        #
+        # @param attr [Hash] input hash
+        # @return [Hash] stripped hash
+        def strip_unupdateable(attr)
+          attr.except(:created_at).except(:updated_at)
         end
 
         # Get a unique statement name for the Query
@@ -28,12 +36,21 @@ module PGI
         # @return [Array] list of sanitized column names
         def sanitize_columns(columns, table = nil)
           Array(columns).map do |col|
-            raise "invalid column name: #{col.inspect}" unless valid_column?(col)
-
-            next "*" if col == "*"
-
-            table ? %("#{table}"."#{col}") : %("#{col}")
+            sanitize_column(col, table)
           end
+        end
+
+        # Get a sanitized column name
+        #
+        # @param columns [String|Array] the column name(s) to sanitize
+        # @param table [Symbol] the table name
+        # @return [Array] list of sanitized column names
+        def sanitize_column(col, table = nil)
+          raise "invalid column name: #{col.inspect}" unless valid_column?(col)
+
+          return "*" if col == "*"
+
+          table ? %("#{table}"."#{col}") : %("#{col}")
         end
 
         # Validates a column name

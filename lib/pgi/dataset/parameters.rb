@@ -4,6 +4,8 @@ module PGI
   module Dataset
     class Parameters
       Param = Struct.new(:key, :column, :index, :value, keyword_init: true)
+      attr_reader :attributes
+
       def initialize(attributes, table: nil)
         attributes = attributes.to_a.map do |k, v|
           { key: k, column: Utils.sanitize_column(k, table), value: v }
@@ -13,7 +15,6 @@ module PGI
           Param.new(**v.merge(index: "$#{i + 1}"))
         end
       end
-      attr_reader :attributes
 
       %i[key column index value].each do |field|
         define_method(:"by_#{field}") do

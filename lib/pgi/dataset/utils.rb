@@ -4,6 +4,22 @@ module PGI
   module Dataset
     module Utils
       class << self
+        # Strips the fields to not insert off a hash
+        #
+        # @param attr [Hash] input hash
+        # @return [Hash] stripped hash
+        def strip_uninsertable(attr)
+          attr.except(:id).except(:created_at).except(:updated_at)
+        end
+
+        # Strips the fields to not update off a hash
+        #
+        # @param attr [Hash] input hash
+        # @return [Hash] stripped hash
+        def strip_unupdateable(attr)
+          attr.except(:created_at).except(:updated_at)
+        end
+
         # Get a unique statement name for the Query
         #
         # @param table [String] table name

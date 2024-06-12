@@ -27,9 +27,7 @@ module PGI
     # @param args [Hash|Object] row data
     # @return [Model,Hash]
     def insert(**attributes)
-      attributes.delete(:id)
-      attributes.delete(:created_at)
-      attributes.delete(:updated_at)
+      attributes = Utils.strip_uninsertable(attributes)
 
       insert!(**attributes)
     end
@@ -53,8 +51,7 @@ module PGI
     # @param args [Hash] data for update
     # @return [Model,Hash]
     def update(id, **args)
-      args.delete(:created_at)
-      args.delete(:updated_at)
+      args = Utils.strip_unupdateable(args)
 
       update!(id, **args)
     end

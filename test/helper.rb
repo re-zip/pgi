@@ -6,8 +6,8 @@ require "simplecov-console"
 SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new(
   [
     SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::Console
-  ]
+    SimpleCov::Formatter::Console,
+  ],
 )
 SimpleCov.start do
   add_filter "/vendor/"
@@ -54,9 +54,7 @@ module PGI
 end
 
 require "test/support/log_catcher"
-SETUP = begin
-  LOG_CATCHER = PGI::Test::Support::LogCatcher.logger
-  PG_CONN = PGI::Test::Methods.postgres_connection
-  PGI::Test::Methods.postgres_migrator(PG_CONN).migrate!(0)
-  PGI::Test::Methods.postgres_migrator(PG_CONN).migrate!
-end
+LOG_CATCHER = PGI::Test::Support::LogCatcher.logger
+PG_CONN = PGI::Test::Methods.postgres_connection
+PGI::Test::Methods.postgres_migrator(PG_CONN).migrate!(0)
+PGI::Test::Methods.postgres_migrator(PG_CONN).migrate!

@@ -46,7 +46,6 @@ module PGI
         current    = current_version
         walk       = to_version - current
         direction  = walk.positive? ? 1 : -1
-
         steps      =
           if direction == 1
             migrations.keys[(current + 1)..].to_a

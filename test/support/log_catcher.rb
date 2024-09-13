@@ -27,7 +27,7 @@ module PGI
             msg,
             "\t#{exception.class}: #{exception.message}",
             "\tTrace:",
-            exception.backtrace.map { |trace_line| "\t\t#{trace_line}" },
+            exception.backtrace.map { |trace_line| "\t\t#{trace_line}" }
           ]
 
           if (inner = exception.cause)

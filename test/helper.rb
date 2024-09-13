@@ -6,8 +6,8 @@ require "simplecov-console"
 SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new(
   [
     SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::Console,
-  ],
+    SimpleCov::Formatter::Console
+  ]
 )
 SimpleCov.start do
   add_filter "/vendor/"

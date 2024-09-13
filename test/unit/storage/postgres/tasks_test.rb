@@ -45,7 +45,7 @@ describe "tasks.rb" do
         "\rI'm giving you 3 seconds to regret and abort.. " \
         "\rI'm giving you 2 seconds to regret and abort.. " \
         "\rI'm giving you 1 seconds to regret and abort.. \n" \
-        "Schema Version: 0\n",
+        "Schema Version: 0\n"
       ) do
         execute_rake("db:rollback")
       end
@@ -65,7 +65,7 @@ describe "tasks.rb" do
     it "destroy all tables in the database" do
       execute_rake("db:migrate") # Make sure there is something to destroy
       assert_output(
-        "Destroying all tables...\n",
+        "Destroying all tables...\n"
       ) do
         execute_rake("db:destroy")
       end

@@ -16,6 +16,7 @@ end
 
 namespace :test do
   RuboCop::RakeTask.new
+
   task :opts do
     ENV["TESTOPTS"] = "--verbose"
   end

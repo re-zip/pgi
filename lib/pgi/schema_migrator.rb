@@ -6,8 +6,8 @@ module PGI
       0 => {
         1 => "CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER," \
              "created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP);",
-        -1 => "DROP TABLE schema_migrations;"
-      }
+        -1 => "DROP TABLE schema_migrations;",
+      },
     )
 
     def initialize(version)
@@ -46,6 +46,7 @@ module PGI
         current    = current_version
         walk       = to_version - current
         direction  = walk.positive? ? 1 : -1
+
         steps      =
           if direction == 1
             migrations.keys[(current + 1)..].to_a

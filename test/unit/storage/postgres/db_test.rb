@@ -15,9 +15,9 @@ describe PGI::DB do
   end
 
   describe "#with" do
-    it "yields a PG::Connection" do
+    it "yields a PGI::Connection" do
       subject.with do |conn|
-        _(conn.is_a?(PG::Connection)).must_equal true
+        _(conn.is_a?(PGI::Connection)).must_equal true
       end
     end
 

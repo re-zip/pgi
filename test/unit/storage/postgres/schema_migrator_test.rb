@@ -21,8 +21,9 @@ describe PGI::SchemaMigrator do
       # Reset to a complety empty database
       subject.migrate!(0)
       pg_conn.exec("DROP TABLE schema_migrations")
+      pg_conn.exec("DROP TABLE schema_lock")
 
-      assert_silent do
+      assert_output(/Attemping to acquire schema lock\nSchema lock acquired/) do
         subject.migrate! # Nil
         _(subject.current_version).must_equal(1)
 

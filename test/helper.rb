@@ -6,8 +6,8 @@ require "simplecov-console"
 SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new(
   [
     SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::Console
-  ]
+    SimpleCov::Formatter::Console,
+  ],
 )
 SimpleCov.start do
   add_filter "/vendor/"
@@ -15,6 +15,7 @@ SimpleCov.start do
 end
 
 require "minitest/autorun"
+require "minitest/focus"
 require "minitest/reporters"
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
 

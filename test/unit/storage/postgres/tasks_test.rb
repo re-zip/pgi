@@ -29,7 +29,7 @@ describe "tasks.rb" do
   describe "db:migrate" do
     it "calls migrate! and print out the current verson" do
       execute_rake("db:rollback")
-      assert_output("Schema Version: 1\n") do
+      assert_output("Attemping to acquire schema lock\nSchema lock acquired\nSchema Version: 1\n") do
         execute_rake("db:migrate")
       end
     end
@@ -45,7 +45,9 @@ describe "tasks.rb" do
         "\rI'm giving you 3 seconds to regret and abort.. " \
         "\rI'm giving you 2 seconds to regret and abort.. " \
         "\rI'm giving you 1 seconds to regret and abort.. \n" \
-        "Schema Version: 0\n"
+        "Attemping to acquire schema lock\n" \
+        "Schema lock acquired\n" \
+        "Schema Version: 0\n",
       ) do
         execute_rake("db:rollback")
       end
@@ -65,7 +67,7 @@ describe "tasks.rb" do
     it "destroy all tables in the database" do
       execute_rake("db:migrate") # Make sure there is something to destroy
       assert_output(
-        "Destroying all tables...\n"
+        "Destroying all tables...\n",
       ) do
         execute_rake("db:destroy")
       end

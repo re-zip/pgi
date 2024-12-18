@@ -53,11 +53,10 @@ module PGI
         raise "FATAL: version must be an integer >= 0" unless version.nil? || (version.is_a?(Integer) && version >= 0)
 
         config.migration_files.sort.each { |file| require file }
+        to_version = version || latest_migration.to_i
         fetch_migrations!
 
         raise "FATAL: Migration version does not exist" unless version.nil? || migrations.key?(version)
-
-        to_version = version || latest_migration.to_i
 
         if current_version == to_version
           puts "No migrations detected..."
@@ -69,8 +68,10 @@ module PGI
           puts "Schema lock acquired"
           current = current_version
           if current == to_version
+            # :nocov:
             puts "No migrations detected... after schema lock acquired"
             return
+            # :nocov:
           end
           walk       = to_version - current
           direction  = walk.positive? ? 1 : -1

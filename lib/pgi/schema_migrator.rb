@@ -114,7 +114,7 @@ module PGI
           DO $$ DECLARE
             r RECORD;
           BEGIN
-            FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP
+            FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema() AND tablename != 'spatial_ref_sys') LOOP
               EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
             END LOOP;
             FOR r IN (SELECT DISTINCT typname FROM pg_type INNER JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid) LOOP

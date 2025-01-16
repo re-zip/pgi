@@ -17,6 +17,7 @@ module PGI
         @command   = command || "SELECT * FROM #{@table}"
         @scope     = options.fetch(:scope, nil)
         @where     = options.fetch(:where, nil)
+        @group_by  = options.fetch(:group_by, nil)
         @params    = options.fetch(:params, [])
         @order     = options.fetch(:order, {})
         @limit     = options.fetch(:limit, 10)
@@ -47,6 +48,16 @@ module PGI
         end
 
         @where = clause
+
+        self
+      end
+
+      # Adds GROUP BY clause to the query
+      #
+      # @param clause [String] the field to group by
+      # @return [Query] return the query instance (for method chaining)
+      def group_by(clause)
+        @group_by = clause
 
         self
       end
@@ -122,6 +133,7 @@ module PGI
 
         command = @command.dup
         command << " WHERE #{scope}#{clause}" if clause || scope
+        command << " GROUP BY #{@group_by}" if @group_by
         command << " ORDER BY #{Array(@order).map { |x| x.join(" ") }.join(", ")}" unless @order.empty?
         command << " LIMIT #{@limit}" if @limit
         command << " RETURNING *" if @command =~ /^UPDATE|INSERT|DELETE/

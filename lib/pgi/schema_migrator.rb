@@ -4,9 +4,23 @@ module PGI
     @migrations = Hash.new { |h, k| h[k] = {} }.merge(
       # Default migration
       0 => {
-        1 => "CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER," \
-             "created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP);",
-        -1 => "DROP TABLE schema_migrations;",
+        1 => <<~SQL,
+          CREATE TABLE IF NOT EXISTS schema_migrations (
+            version INTEGER,
+            created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            up TEXT,
+            down TEXT
+          );
+          CREATE TABLE IF NOT EXISTS schema_lock (
+            locked_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NULL,
+            onerow BOOLEAN PRIMARY KEY DEFAULT TRUE CONSTRAINT onerow_uni CHECK (onerow)
+          );
+          INSERT INTO schema_lock DEFAULT VALUES ON CONFLICT DO NOTHING;
+        SQL
+        -1 => <<~SQL,
+          DROP TABLE schema_migrations;
+          DROP TABLE schema_lock;
+        SQL
       },
     )
 
@@ -39,30 +53,41 @@ module PGI
         raise "FATAL: version must be an integer >= 0" unless version.nil? || (version.is_a?(Integer) && version >= 0)
 
         config.migration_files.sort.each { |file| require file }
+        to_version = version || latest_migration.to_i
+        fetch_migrations!
 
         raise "FATAL: Migration version does not exist" unless version.nil? || migrations.key?(version)
 
-        to_version = version || latest_migration.to_i
-        current    = current_version
-        walk       = to_version - current
-        direction  = walk.positive? ? 1 : -1
-        steps      =
-          if direction == 1
-            migrations.keys[(current + 1)..].to_a
-          else
-            migrations.keys[0..current].to_a.reverse
-          end.take(walk.abs)
-
-        if current == to_version
+        if current_version == to_version
           puts "No migrations detected..."
           return
         end
 
-        config.pg_conn.transaction do
-          steps.each do |v|
-            delete_version(v) if direction == -1
-            config.pg_conn.exec(migrations[v][direction])
-            add_version(v) if direction == 1
+        puts "Attemping to acquire schema lock"
+        schema_lock! do
+          puts "Schema lock acquired"
+          current = current_version
+          if current == to_version
+            # :nocov:
+            puts "No migrations detected... after schema lock acquired"
+            return
+            # :nocov:
+          end
+          walk       = to_version - current
+          direction  = walk.positive? ? 1 : -1
+          steps      =
+            if direction == 1
+              migrations.keys[(current + 1)..].to_a
+            else
+              migrations.keys[0..current].to_a.reverse
+            end.take(walk.abs)
+
+          config.pg_conn.transaction do
+            steps.each do |v|
+              delete_version(v) if direction == -1
+              config.pg_conn.exec(migrations[v][direction])
+              add_version(v) if direction == 1
+            end
           end
         end
       end
@@ -99,16 +124,66 @@ module PGI
         SQL
       end
 
+      def schema_lock!
+        loop do
+          success = acquire_lock!
+          if success
+            yield
+            release_lock!
+            return
+          else
+            sleep 1
+          end
+        end
+      end
+
+      def acquire_lock!
+        config.pg_conn.exec_params(<<~SQL, []).to_a.length == 1
+          UPDATE schema_lock
+          SET locked_at = NOW()
+          WHERE COALESCE(locked_at, '1970-1-1'::TIMESTAMP WITHOUT TIME ZONE) < NOW() - interval '15 seconds'
+          RETURNING *
+        SQL
+      rescue PG::UndefinedTable => e
+        raise unless e.message =~ /relation "schema_lock" does not exist/
+
+        true
+      end
+
+      def release_lock!
+        config.pg_conn.exec_params(<<~SQL, []).to_a
+          UPDATE schema_lock
+          SET locked_at = NULL
+        SQL
+        nil
+      rescue PG::UndefinedTable => e
+        raise unless e.message =~ /relation "schema_lock" does not exist/
+
+        nil
+      end
+
       private
+
+      def fetch_migrations!
+        result = config.pg_conn.exec_params(<<~SQL, [migrations.keys.max]).to_a
+          SELECT * from schema_migrations WHERE version > $1
+        SQL
+
+        @migrations = migrations.merge(result.to_h do |x|
+          [x["version"].to_i, { 1 => x["up"], -1 => x["down"] }]
+        end)
+      rescue PG::UndefinedTable => e
+        raise unless e.message =~ /relation "schema_migrations" does not exist/
+      end
 
       def latest_migration
         migrations.keys.max || -1
       end
 
       def add_version(version)
-        config.pg_conn.exec_params(<<~SQL, [version])
+        config.pg_conn.exec_params(<<~SQL, [version, migrations[version][1], migrations[version][-1]])
           INSERT INTO schema_migrations
-          (version) VALUES ($1)
+          (version, up, down) VALUES ($1, $2, $3)
         SQL
       end
 

@@ -6,13 +6,16 @@ module PGI
       Param = Struct.new(:key, :column, :index, :value, keyword_init: true)
       attr_reader :attributes
 
-      def initialize(attributes, table: nil, starting_index: 1)
+      def initialize(attributes, table: nil, starting_index: 1, attribute_pg_types: {})
         attributes = attributes.to_a.map do |k, v|
           { key: k, column: Utils.sanitize_column(k, table), value: v }
         end
         attributes = attributes.sort_by { |x, _| x[:key] }
         @attributes = attributes.map.with_index do |v, i|
-          Param.new(**v, index: "$#{i + starting_index}")
+          type = attribute_pg_types.fetch(v[:key], nil)
+          type_postfix = ""
+          type_postfix = "::#{type}" if type
+          Param.new(**v, index: "$#{i + starting_index}#{type_postfix}")
         end
       end
 

@@ -38,12 +38,12 @@ module PGI
       %i[key column index value typed_column typed_index].each do |field|
         define_method(:"by_#{field}") do
           @by_field ||= {}
-          @by_field[field] ||= @attributes.to_h { |x| [x[field], x] }
+          @by_field[field] ||= @attributes.to_h { |x| [x.send(field), x] }
         end
 
         define_method(:"#{field}s") do
           @all_of_field ||= {}
-          @all_of_field[field] ||= @attributes.map { |x| x[field] }
+          @all_of_field[field] ||= @attributes.map { |x| x.send(field) }
         end
       end
 

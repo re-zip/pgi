@@ -12,7 +12,7 @@ module PGI
           "#{index}#{type_postfix}"
         end
 
-        def typed_postfix
+        def type_postfix
           type_postfix = ""
           type_postfix = "::#{type}" if type
           type_postfix

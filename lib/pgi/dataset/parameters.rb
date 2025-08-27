@@ -3,7 +3,21 @@ require "pgi/dataset/utils"
 module PGI
   module Dataset
     class Parameters
-      Param = Struct.new(:key, :column, :index, :value, keyword_init: true)
+      Param = Struct.new(:key, :column, :index, :value, :type, keyword_init: true) do
+        def typed_column
+          "#{column}#{type_postfix}"
+        end
+
+        def typed_index
+          "#{index}#{type_postfix}"
+        end
+
+        def typed_postfix
+          type_postfix = ""
+          type_postfix = "::#{type}" if type
+          type_postfix
+        end
+      end
       attr_reader :attributes
 
       def initialize(attributes, table: nil, starting_index: 1, attribute_pg_types: {})
@@ -13,13 +27,15 @@ module PGI
         attributes = attributes.sort_by { |x, _| x[:key] }
         @attributes = attributes.map.with_index do |v, i|
           type = attribute_pg_types.fetch(v[:key], nil)
-          type_postfix = ""
-          type_postfix = "::#{type}" if type
-          Param.new(**v, index: "$#{i + starting_index}#{type_postfix}")
+          Param.new(
+            **v,
+            index: "$#{i + starting_index}",
+            type: type,
+          )
         end
       end
 
-      %i[key column index value].each do |field|
+      %i[key column index value typed_column typed_index].each do |field|
         define_method(:"by_#{field}") do
           @by_field ||= {}
           @by_field[field] ||= @attributes.to_h { |x| [x[field], x] }
@@ -32,6 +48,7 @@ module PGI
       end
 
       alias_method :indices, :indexs
+      alias_method :typed_indices, :typed_indexs
       def length
         attributes.length
       end
